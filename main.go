@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -57,13 +58,18 @@ type Post struct {
 }
 
 type db struct {
+	mu    sync.RWMutex
 	posts []Post
 }
 
 func (d *db) GetPosts() []Post {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
 	return d.posts
 }
 
 func (d *db) AddPost(p Post) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	d.posts = append(d.posts, p)
 }
